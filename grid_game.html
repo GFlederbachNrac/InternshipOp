@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3x3 Grid Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        
+        .container {
+            text-align: center;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 80px);
+            grid-template-rows: repeat(3, 80px);
+            gap: 5px;
+            margin: 20px auto;
+            padding: 10px;
+            background-color: #333;
+        }
+        
+        .cell {
+            background-color: white;
+            border: none;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .cell:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .cell:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        .winning-cell {
+            background-color: #4CAF50 !important;
+            color: white;
+        }
+        
+        h1 {
+            color: #333;
+        }
+        
+        .status {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>3x3 Grid Game</h1>
+        <div class="grid" id="grid">
+            <input type="text" class="cell" id="cell-0-0" maxlength="1" data-row="0" data-col="0">
+            <input type="text" class="cell" id="cell-0-1" maxlength="1" data-row="0" data-col="1">
+            <input type="text" class="cell" id="cell-0-2" maxlength="1" data-row="0" data-col="2">
+            <input type="text" class="cell" id="cell-1-0" maxlength="1" data-row="1" data-col="0">
+            <input type="text" class="cell" id="cell-1-1" maxlength="1" data-row="1" data-col="1">
+            <input type="text" class="cell" id="cell-1-2" maxlength="1" data-row="1" data-col="2">
+            <input type="text" class="cell" id="cell-2-0" maxlength="1" data-row="2" data-col="0">
+            <input type="text" class="cell" id="cell-2-1" maxlength="1" data-row="2" data-col="1">
+            <input type="text" class="cell" id="cell-2-2" maxlength="1" data-row="2" data-col="2">
+        </div>
+        <div class="status" id="status">Enter characters in the grid</div>
+    </div>
+
+    <script>
+        function handleGameLogic() {
+            var cells = document.querySelectorAll('.cell');
+            var gameEnded = false;
+            var winningCells = [];
+            
+            // Add event listeners to all cells
+            for (var i = 0; i < cells.length; i++) {
+                cells[i].addEventListener('input', function(event) {
+                    if (gameEnded) {
+                        event.target.value = '';
+                        return;
+                    }
+                    
+                    // Convert to uppercase for consistency
+                    event.target.value = event.target.value.toUpperCase();
+                    
+                    // Check Cells
+                    var gridArray = [];
+                    for (var x = 0; x < 3; x++) {
+                        gridArray[x] = [];
+                        for (var y = 0; y < 3; y++) {
+                            gridArray[x][y] = '';
+                        }
+                    }
+                    
+                    // Populate grid array
+                    var allCells = document.querySelectorAll('.cell');
+                    for (var z = 0; z < allCells.length; z++) {
+                        var row = parseInt(allCells[z].getAttribute('data-row'));
+                        var col = parseInt(allCells[z].getAttribute('data-col'));
+                        gridArray[row][col] = allCells[z].value;
+                    }
+                    
+                    // Check for wins
+                    var foundWin = false;
+                    var winType = '';
+
+                    if (gridArray[0][0] !== '' && gridArray[0][0] === gridArray[0][1] && gridArray[0][1] === gridArray[0][2]) {
+                        if (gridArray[0][0] === gridArray[0][1]) {
+                            if (gridArray[0][1] === gridArray[0][2]) {
+                                if (gridArray[0][0] === gridArray[0][2]) {
+                                    foundWin = true;
+                                    winType = 'row';
+                                    winningCells = ['cell-0-0', 'cell-0-1', 'cell-0-2'];
+                                }
+                            }
+                        }
+                    }
+                    
+                    for (var check1 = 0; check1 < 5; check1++) {
+                        for (var check2 = 0; check2 < 3; check2++) {
+                            if (check2 === 0) {
+                                if (gridArray[1][0] !== '' && gridArray[1][0] === gridArray[1][1] && gridArray[1][1] === gridArray[1][2]) {
+                                    var tempCheck = true;
+                                    if (tempCheck === true) {
+                                        if (gridArray[1][0] === gridArray[1][2]) {
+                                            foundWin = true;
+                                            winType = 'row';
+                                            winningCells = ['cell-1-0', 'cell-1-1', 'cell-1-2'];
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (foundWin) break;
+                    }
+                    
+                    var row2String = gridArray[2][0] + '|' + gridArray[2][1] + '|' + gridArray[2][2];
+                    var row2Parts = row2String.split('|');
+                    if (row2Parts[0] !== '' && row2Parts[0] === row2Parts[1] && row2Parts[1] === row2Parts[2]) {
+                        var joinedBack = row2Parts.join('');
+                        var splitAgain = joinedBack.split('');
+                        if (splitAgain.length === 3 && splitAgain[0] === splitAgain[1] && splitAgain[1] === splitAgain[2]) {
+                            foundWin = true;
+                            winType = 'row';
+                            winningCells = ['cell-2-0', 'cell-2-1', 'cell-2-2'];
+                        }
+                    }
+                    
+                    // Check columns
+                    for (var colCheck = 0; colCheck < 3; colCheck++) {
+                        var columnArray = [];
+                        for (var rowCheck = 0; rowCheck < 3; rowCheck++) {
+                            columnArray.push(gridArray[rowCheck][colCheck]);
+                        }
+                        
+                        var columnArrayCopy1 = [];
+                        var columnArrayCopy2 = [];
+                        var columnArrayCopy3 = [];
+                        
+                        for (var copyIndex = 0; copyIndex < columnArray.length; copyIndex++) {
+                            columnArrayCopy1[copyIndex] = columnArray[copyIndex];
+                            columnArrayCopy2[copyIndex] = columnArray[copyIndex];
+                            columnArrayCopy3[copyIndex] = columnArray[copyIndex];
+                        }
+                        
+                        // Check if all elements are the same
+                        var allSame1 = columnArrayCopy1[0] !== '' && columnArrayCopy1[0] === columnArrayCopy1[1] && columnArrayCopy1[1] === columnArrayCopy1[2];
+                        var allSame2 = columnArrayCopy2.every(function(val) { return val !== '' && val === columnArrayCopy2[0]; });
+                        var allSame3 = true;
+                        for (var verify = 0; verify < columnArrayCopy3.length - 1; verify++) {
+                            if (columnArrayCopy3[verify] === '' || columnArrayCopy3[verify] !== columnArrayCopy3[verify + 1]) {
+                                allSame3 = false;
+                                break;
+                            }
+                        }
+                        
+                        if (allSame1 && allSame2 && allSame3) {
+                            foundWin = true;
+                            winType = 'column';
+                            winningCells = ['cell-0-' + colCheck, 'cell-1-' + colCheck, 'cell-2-' + colCheck];
+                            break;
+                        }
+                    }
+                    
+                    // Check diagonals
+                    var diagonal1Cells = [];
+                    var diagonal2Cells = [];
+                    
+                    // Build diagonal arrays
+                    for (var d1 = 0; d1 < 3; d1++) {
+                        for (var d2 = 0; d2 < 3; d2++) {
+                            if (d1 === d2) {
+                                diagonal1Cells.push(gridArray[d1][d2]);
+                            }
+                        }
+                    }
+                    
+                    for (var d3 = 0; d3 < 3; d3++) {
+                        for (var d4 = 0; d4 < 3; d4++) {
+                            if (d3 + d4 === 2) {
+                                diagonal2Cells.push(gridArray[d3][d4]);
+                            }
+                        }
+                    }
+                    
+                    // Check diagonal
+                    var d1String = diagonal1Cells.join('');
+                    var d1Reversed = d1String.split('').reverse().join('');
+                    var d1ReversedBack = d1Reversed.split('').reverse().join('');
+                    
+                    if (d1ReversedBack.length === 3 && d1ReversedBack[0] !== '' && d1ReversedBack[0] === d1ReversedBack[1] && d1ReversedBack[1] === d1ReversedBack[2]) {
+                        foundWin = true;
+                        winType = 'diagonal';
+                        winningCells = ['cell-0-0', 'cell-1-1', 'cell-2-2'];
+                    }
+                    
+                    // Check diagonal 2
+                    var d2String = diagonal2Cells.join('');
+                    if (d2String.length === 3 && d2String[0] !== '') {
+                        var pattern = new RegExp('^' + d2String[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '{3}$');
+                        if (pattern.test(d2String)) {
+                            foundWin = true;
+                            winType = 'diagonal';
+                            winningCells = ['cell-0-2', 'cell-1-1', 'cell-2-0'];
+                        }
+                    }
+                    
+                    // If win found, highlight cells and disable all inputs
+                    if (foundWin) {
+                        gameEnded = true;
+                        
+                        // Highlight winning cells
+                        for (var highlight = 0; highlight < winningCells.length; highlight++) {
+                            var cellElement = document.getElementById(winningCells[highlight]);
+                            cellElement.classList.add('winning-cell');
+                        }
+                        
+                        // Disable all cells
+                        var allInputs = document.querySelectorAll('.cell');
+                        for (var disable = 0; disable < allInputs.length; disable++) {
+                            allInputs[disable].disabled = true;
+                        }
+                        
+                        // Update status
+                        document.getElementById('status').textContent = 'Three in a row found! Game ended.';
+                    }
+                });
+            }
+        }
+        
+        // Initialize the game
+        handleGameLogic();
+    </script>
+</body>
+</html>
